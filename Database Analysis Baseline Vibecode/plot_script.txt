@@ -1,0 +1,913 @@
+model=Sketchup.active_model
+entities=model.active_entities
+myOldLayer=Sketchup.active_model.active_layer
+Sketchup.active_model.active_layer="Layer0"
+model.start_operation("ImportCSV",true)
+
+
+
+
+
+
+def self.HashToJson(myHash)
+    jsonStr = myHash.inspect.gsub('=>',':')
+    return jsonStr
+end
+def self.JsonToHash(myJson)
+    hash_obj={}
+    hash_obj = eval( myJson.gsub(':','=>') )
+    hash_obj.each {|k,v|
+        hash_obj[k]= v.gsub('=>',':') if v.is_a?(String)
+        }
+    return hash_obj
+end
+def self.remove_first_and_last_char(str)
+  # Check if the string is long enough
+  if str.length > 1
+    # Return the string without the first and last characters
+    str[1..-2]
+  else
+    # Return an empty string if the string is too short
+    ""
+  end
+end
+def multiple?(a, b)
+  if b == 0
+    #puts "Cannot check for multiples of zero."
+    return false
+  end
+  
+  a % b == 0
+end
+
+
+def self.add_bottom_perimeter(my_parameters)
+    
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"]
+    min_y = my_parameters["min_y"]
+    max_x = my_parameters["max_x"]
+    max_y = my_parameters["max_y"]
+    height = my_parameters["height"]
+    
+    #draw line drawing at the very bottom:
+    x1 = min_x.mm
+    y1 = min_y.mm
+    z1 = 0
+    
+    x2 = max_x.mm
+    y2 = min_y.mm
+    z2 = 0 
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = max_x.mm
+    y1 = min_y.mm
+    z1 = 0
+    
+    x2 = max_x.mm
+    y2 = max_y.mm
+    z2 = 0
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = max_x.mm
+    y1 = max_y.mm
+    z1 = 0
+    
+    x2 = min_x.mm
+    y2 = max_y.mm
+    z2 = 0
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = min_x.mm
+    y1 = max_y.mm
+    z1 = 0
+    
+    x2 = min_x.mm
+    y2 = min_y.mm
+    z2 = 0
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+end
+
+def self.add_bounding_box_perimeters(my_parameters)
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"]
+    min_y = my_parameters["min_y"]
+    max_x = my_parameters["max_x"]
+    max_y = my_parameters["max_y"]
+    height = my_parameters["height"]
+    
+    #draw line drawing at the very top:
+    x1 = min_x.mm
+    y1 = min_y.mm
+    z1 = height.mm
+    
+    x2 = max_x.mm
+    y2 = min_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = max_x.mm
+    y1 = min_y.mm
+    z1 = height.mm
+    
+    x2 = max_x.mm
+    y2 = max_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = max_x.mm
+    y1 = max_y.mm
+    z1 = height.mm
+    
+    x2 = min_x.mm
+    y2 = max_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = min_x.mm
+    y1 = max_y.mm
+    z1 = height.mm
+    
+    x2 = min_x.mm
+    y2 = min_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    #All verticals:
+    x1 = min_x.mm
+    y1 = min_y.mm
+    z1 = 0
+    
+    x2 = min_x.mm
+    y2 = min_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+        
+    x1 = min_x.mm
+    y1 = max_y.mm
+    z1 = 0
+    
+    x2 = min_x.mm
+    y2 = max_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+        
+    x1 = max_x.mm
+    y1 = max_y.mm
+    z1 = 0
+    
+    x2 = max_x.mm
+    y2 = max_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+        
+    x1 = max_x.mm
+    y1 = min_y.mm
+    z1 = 0
+    
+    x2 = max_x.mm
+    y2 = min_y.mm
+    z2 = height.mm
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    
+end
+def self.add_bottom_perimeter_x(my_parameters)
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"]
+    min_y = my_parameters["min_y"]
+    max_x = my_parameters["max_x"]
+    max_y = my_parameters["max_y"]
+    height = my_parameters["height"]
+    
+    #draw line drawing at the very top:
+    x1 = min_x.mm
+    y1 = min_y.mm
+    z1 = 0
+    
+    x2 = max_x.mm
+    y2 = max_y.mm
+    z2 = 0
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+    x1 = max_x.mm
+    y1 = min_y.mm
+    z1 = 0
+    
+    x2 = min_x.mm
+    y2 = max_y.mm
+    z2 = 0
+    
+    point1 = Geom::Point3d.new(x1, y1, z1)
+    point2 = Geom::Point3d.new(x2, y2, z2)
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    
+end
+def self.add_bottom_face(my_parameters)
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"].mm
+    min_y = my_parameters["min_y"].mm
+    max_x = my_parameters["max_x"].mm
+    max_y = my_parameters["max_y"].mm
+    
+    point1 = Geom::Point3d.new(min_x, min_y, 0)
+    point2 = Geom::Point3d.new(max_x, min_y, 0)
+    point3 = Geom::Point3d.new(max_x, max_y, 0)
+    point4 = Geom::Point3d.new(min_x, max_y, 0)
+    
+    face = box_gr.entities.add_face(point1, point2, point3, point4)
+    
+    if face.normal.z < 0 
+        face.reverse!
+    end
+    
+    
+end
+
+def self.add_a_box(my_parameters)
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"].mm
+    min_y = my_parameters["min_y"].mm
+    max_x = my_parameters["max_x"].mm
+    max_y = my_parameters["max_y"].mm
+    
+    z_start = my_parameters["z_start"].mm
+    height = my_parameters["height"].mm
+    
+    point1 = Geom::Point3d.new(min_x, min_y, z_start)
+    point2 = Geom::Point3d.new(max_x, min_y, z_start)
+    point3 = Geom::Point3d.new(max_x, max_y, z_start)
+    point4 = Geom::Point3d.new(min_x, max_y, z_start)
+    
+    face = box_gr.entities.add_face(point1, point2, point3, point4)
+    
+    
+    
+    if face.normal.z < 0 
+        face.reverse!
+    end
+    face.pushpull(height)
+    
+end
+def self.add_a_box_lite(my_parameters)
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"].mm
+    min_y = my_parameters["min_y"].mm
+    max_x = my_parameters["max_x"].mm
+    max_y = my_parameters["max_y"].mm
+    
+    z_start = my_parameters["z_start"].mm
+    height = my_parameters["height"].mm
+    
+    point1 = Geom::Point3d.new(min_x, min_y, z_start)
+    point2 = Geom::Point3d.new(max_x, min_y, z_start)
+    point3 = Geom::Point3d.new(max_x, max_y, z_start)
+    point4 = Geom::Point3d.new(min_x, max_y, z_start)
+    
+    z_start = z_start + height
+    point1h = Geom::Point3d.new(min_x, min_y, z_start)
+    point2h = Geom::Point3d.new(max_x, min_y, z_start)
+    point3h = Geom::Point3d.new(max_x, max_y, z_start)
+    point4h = Geom::Point3d.new(min_x, max_y, z_start)
+    
+    
+    
+    drawn_line = box_gr.entities.add_line(point1, point2)
+    drawn_line = box_gr.entities.add_line(point2, point3)
+    drawn_line = box_gr.entities.add_line(point3, point4)
+    drawn_line = box_gr.entities.add_line(point4, point1)
+    
+    drawn_line = box_gr.entities.add_line(point1h, point2h)
+    drawn_line = box_gr.entities.add_line(point2h, point3h)
+    drawn_line = box_gr.entities.add_line(point3h, point4h)
+    drawn_line = box_gr.entities.add_line(point4h, point1h)
+    
+    drawn_line = box_gr.entities.add_line(point1, point1h)
+    drawn_line = box_gr.entities.add_line(point2, point2h)
+    drawn_line = box_gr.entities.add_line(point3, point3h)
+    drawn_line = box_gr.entities.add_line(point4, point4h)
+    
+    drawn_line = box_gr.entities.add_line(point1h, point3h)
+    drawn_line = box_gr.entities.add_line(point2h, point4h)
+    
+    
+end
+def self.add_a_box_very_lite(my_parameters)
+    box_gr = my_parameters["box_gr"]
+    min_x = my_parameters["min_x"].mm
+    min_y = my_parameters["min_y"].mm
+    max_x = my_parameters["max_x"].mm
+    max_y = my_parameters["max_y"].mm
+    
+    z_start = my_parameters["z_start"].mm
+    height = my_parameters["height"].mm
+    
+    point1 = Geom::Point3d.new(min_x, min_y, z_start)
+    point2 = Geom::Point3d.new(max_x, min_y, z_start)
+    point3 = Geom::Point3d.new(max_x, max_y, z_start)
+    point4 = Geom::Point3d.new(min_x, max_y, z_start)
+    
+    z_start = z_start + height
+    point1h = Geom::Point3d.new(min_x, min_y, z_start)
+    point2h = Geom::Point3d.new(max_x, min_y, z_start)
+    point3h = Geom::Point3d.new(max_x, max_y, z_start)
+    point4h = Geom::Point3d.new(min_x, max_y, z_start)
+    
+    
+    
+    # drawn_line = box_gr.entities.add_line(point1, point2)
+    # drawn_line = box_gr.entities.add_line(point2, point3)
+    # drawn_line = box_gr.entities.add_line(point3, point4)
+    # drawn_line = box_gr.entities.add_line(point4, point1)
+    
+    drawn_line = box_gr.entities.add_line(point1h, point2h)
+    drawn_line = box_gr.entities.add_line(point2h, point3h)
+    drawn_line = box_gr.entities.add_line(point3h, point4h)
+    drawn_line = box_gr.entities.add_line(point4h, point1h)
+    
+    # drawn_line = box_gr.entities.add_line(point1, point1h)
+    # drawn_line = box_gr.entities.add_line(point2, point2h)
+    # drawn_line = box_gr.entities.add_line(point3, point3h)
+    # drawn_line = box_gr.entities.add_line(point4, point4h)
+    
+    drawn_line = box_gr.entities.add_line(point1h, point3h)
+    drawn_line = box_gr.entities.add_line(point2h, point4h)
+    
+    
+end
+def material_exists?(material_name)
+  model = Sketchup.active_model
+  materials = model.materials
+
+  # Check if the material exists
+  if materials[material_name]
+    
+    return true
+  else
+    
+    return false
+  end
+end
+
+
+def create_material_with_color(material_name, rgb_values)
+    if !material_exists?(material_name)
+      model = Sketchup.active_model
+
+      # Create a new material
+      material = model.materials.add(material_name)
+
+      # Set the color using the provided RGB values
+      material.color = Sketchup::Color.new(rgb_values[0], rgb_values[1], rgb_values[2])
+    end
+end
+def self.add_text_to_group(group, text, position)
+    
+    my_text = text
+    my_font = "Arial"
+    my_bold = false
+    my_italic = false
+    my_height = 50.mm
+    my_tolerance = 0.5
+    my_z = 0
+    my_filled = true
+    my_depth = 10.mm
+    
+    
+    
+    text_group = group.entities.add_group()
+    text_group.entities.add_3d_text(my_text, TextAlignLeft, my_font, my_bold, my_italic, my_height, my_tolerance, my_z, my_filled, my_depth)
+    text_group.transform!(Geom::Transformation.new(position))
+    
+    return text_group
+end
+
+prompts = ["How Fast you want it?"]
+defaults = ["1"]
+list = ["0|1|2"]
+input = UI.inputbox(prompts, defaults, list, "Speeeeeeeeeeed setting")
+
+
+
+
+if input
+  selected_speed = input[0].to_i  # Convert input to integer
+  
+  # Further processing can be done here
+else
+    selected_speed = 1
+    UI.messagebox("Canceled!")
+    return
+end
+speed_it_up = selected_speed
+
+Sketchup.active_model.rendering_options["EdgeColorMode"] = 0
+
+create_material_with_color("my_green", [0, 255, 0])
+create_material_with_color("my_red", [255, 0, 0])
+create_material_with_color("my_orange", [255, 191, 0])
+create_material_with_color("baseplate_grey", [125, 125, 125])
+create_material_with_color("box_mat", [200, 200, 200])
+create_material_with_color("box_mat_lite", [0, 0, 255])
+
+
+my_pos_x = 0
+my_pos_x_step = 2000
+max_ever_x = 0
+
+my_pos_Y = 0
+my_pos_Y_max_in_row = 0
+my_pos_y_step = 2000
+
+in_row_counter = 0
+in_column_counter = 0
+max_per_row = 100
+
+
+my_pos_x_i_gap_after = 10
+my_pos_y_i_gap_after = 10
+
+my_rownumber = -1
+
+all_group_array = []
+
+gr1 = entities.add_group()
+constrPt_gr1 = gr1.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+
+path = UI.openpanel("Import .CSV", "", "inners_per_outer_plot_data.csv")
+lines=IO.readlines(path)
+
+lines.each{|line|
+            line.chomp!       #remove \n at the end
+            # puts "----------------------------------------------------------"
+            # puts line
+            
+
+            myJson = self.remove_first_and_last_char(line)
+            myJson = myJson.gsub('""', '"')
+            #result.gsub("''", "'")
+            # puts myJson.length
+            
+            
+            my_rownumber = my_rownumber + 1
+            
+            
+            
+            if my_rownumber > 0
+                myHash = self.JsonToHash(myJson)
+
+                #puts "----------------------------------------------------------"
+                #puts myHash
+                
+                #define color schemes:
+                color_scheme = {}
+                if myHash["inners_per_outer"] > 0
+                    color_scheme["bounding_box"] = nil
+                    color_scheme["gap_box"] = nil
+                    color_scheme["inner_box_projection"] = "my_green"
+                    color_scheme["inner_box"] = nil
+                    
+                    
+                else
+                    color_scheme["bounding_box"] = "my_red"
+                    color_scheme["gap_box"] = nil
+                    color_scheme["inner_box_projection"] = "my_orange"
+                    color_scheme["inner_box"] = nil
+                    
+                end
+                my_color = nil
+                
+                main_group = gr1.entities.add_group()
+                constrPt = main_group.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                all_group_array[all_group_array.length] = main_group
+                
+                
+                
+                
+                main_group.name =  "row number " + my_rownumber.to_s + " sku_id " + myHash["sku_id"].to_s
+                
+                
+                if speed_it_up == 0
+                
+                    #Add text info:
+                    start_y = -150
+                    y_step = -90
+                    
+                    pos_y = start_y
+                    
+                    my_txt = "Row Number: " + my_rownumber.to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "SKU ID: " + myHash["sku_id"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                
+                
+                
+                    pos_y = pos_y + y_step
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Inners Per Outer: " + myHash["inners_per_outer"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    if myHash["inners_per_outer"] == 0
+                        text_group.material = "my_red"
+                    end
+                    if myHash["inners_per_outer"] == myHash["ti_max"] * myHash["hi_max"] and myHash["inners_per_outer"] != 0
+                        text_group.material = "my_green"
+                    end
+                    
+                    
+                    
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Pattern Name: " + myHash["pattern_name"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Multiple Layers Setting Limit IPO to: " + myHash["ipo_limited_by__multiple_layers_disabled__to"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    if myHash["inners_per_outer"].to_s == myHash["ipo_limited_by__multiple_layers_disabled__to"].to_s
+                        text_group.material = "my_orange"
+                    end
+                    
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Limited by Weight to: " + myHash["ipo_limited_by__weight__to"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    if myHash["inners_per_outer"].to_s == myHash["ipo_limited_by__weight__to"].to_s
+                        text_group.material = "my_orange"
+                    end
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Limited by Volume to: " + myHash["ipo_limited_by__volume_restriction__to"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    if myHash["inners_per_outer"].to_s == myHash["ipo_limited_by__volume_restriction__to"].to_s
+                        text_group.material = "my_orange"
+                    end
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Limited by Max Inner Count to: " + myHash["ipo_limited_by__max_inner_count__to"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    if myHash["inners_per_outer"].to_s == myHash["ipo_limited_by__max_inner_count__to"].to_s
+                        text_group.material = "my_orange"
+                    end
+                    
+                    pos_y = pos_y + y_step
+                    my_txt = "Full Layers Only Setting Limit IPO to: " + myHash["ipo_limited_by__full_layers_only__to"].to_s
+                    text_group = self.add_text_to_group(main_group, my_txt, [0, pos_y.mm, 0])
+                    if myHash["inners_per_outer"].to_s == myHash["ipo_limited_by__full_layers_only__to"].to_s
+                        text_group.material = "my_orange"
+                    end
+                    
+                end
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                
+                #Bed:
+                bounding_box_group = main_group.entities.add_group()
+                cpoint_bb = bounding_box_group.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                
+                inner_line_box_group = main_group.entities.add_group()
+                cpoint_ilb = inner_line_box_group.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                
+                inner_transition_happened = 0
+                
+                for i in 0..(myHash["min_x_array"].length-1)
+                
+                    if i == 0
+                        my_color = color_scheme["bounding_box"]
+                    end
+                    if i == 1
+                        my_color = color_scheme["gap_box"]
+                    end
+                    if i > 1
+                        my_color = color_scheme["inner_box_projection"]
+                    end
+                    
+                    if i > 1 and inner_transition_happened == 0
+                        inner_line_box_group = main_group.entities.add_group()
+                        cpoint_ilb2 = inner_line_box_group.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                        inner_transition_happened = 1
+                        
+                        
+                    end
+                    
+                    
+                    
+                    box_gr = inner_line_box_group.entities.add_group()
+                    cpoint_box_gr = box_gr.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                    #inner ti loop
+                    
+                    box_gr.material = my_color
+                    
+                    
+                    my_parameters = {}
+                    my_parameters["box_gr"] = box_gr
+                    my_parameters["min_x"] = myHash["min_x_array"][i].to_f * 1000
+                    my_parameters["min_y"] = myHash["min_y_array"][i].to_f * 1000
+                    my_parameters["max_x"] = myHash["max_x_array"][i].to_f * 1000
+                    my_parameters["max_y"] = myHash["max_y_array"][i].to_f * 1000
+                    my_parameters["height"] = myHash["height_array"][i].to_f * 1000
+                    
+                    
+                    
+                    self.add_bottom_perimeter(my_parameters)
+                    
+                    
+                    
+                    
+                    if (i == 0 or i == 2) and (speed_it_up == 0 or speed_it_up == 1)
+                        self.add_bounding_box_perimeters(my_parameters)
+                    end
+                    if i > 1
+                        self.add_bottom_perimeter_x(my_parameters)
+                    end
+                    begin
+                        cpoint_box_gr.erase!
+                    rescue
+                        my_err = 1
+                    end
+                    if speed_it_up < 2
+                        if i == 2 and myHash["hi_max"] > 1
+                            #create new box with no bottom
+                            box_gr = inner_line_box_group.entities.add_group()
+                            cpoint_box_gr = box_gr.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                            #inner ti loop
+                            
+                            box_gr.material = my_color
+                            
+                            
+                            my_parameters = {}
+                            my_parameters["box_gr"] = box_gr
+                            my_parameters["min_x"] = myHash["min_x_array"][i].to_f * 1000
+                            my_parameters["min_y"] = myHash["min_y_array"][i].to_f * 1000
+                            my_parameters["max_x"] = myHash["max_x_array"][i].to_f * 1000
+                            my_parameters["max_y"] = myHash["max_y_array"][i].to_f * 1000
+                            my_parameters["height"] = myHash["height_array"][i].to_f * 1000
+                            
+                            
+                            
+                            self.add_bottom_perimeter(my_parameters)
+                            self.add_bounding_box_perimeters(my_parameters)
+                            begin
+                                cpoint_box_gr.erase!
+                            rescue
+                                my_err = 1
+                            end
+                            
+                            for j in 2..myHash["hi_max"]
+                                
+                                
+                                
+                                transformation = box_gr.transformation
+                                new_instance = inner_line_box_group.entities.add_instance(box_gr.definition, transformation)
+                                transformation = Geom::Transformation.new( Geom::Vector3d.new(0,0,((myHash["height_array"][i].to_f * 1000).mm) * (j-1)))
+                                new_instance.transform! transformation
+                                new_instance.material = my_color
+                            end
+                        end
+                    end
+                    begin
+                        cpoint_ilb2.erase!
+                    rescue
+                        my_err = 1
+                    end
+                    
+                    
+                end
+                
+                
+                
+                
+                
+                if myHash["inners_per_outer"] > 0
+                    b_max_inner_count = myHash["inners_per_outer"]
+                    b_cases_drawn = 0
+                    
+                    inner_line_box_group = main_group.entities.add_group()
+                    cpoint_ilb3 = inner_line_box_group.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                    inner_transition_happened = 1
+                    
+                    
+                    if speed_it_up == 0 or speed_it_up == 1
+                        current_z = 0
+                        while b_cases_drawn < b_max_inner_count 
+                            
+                                                    
+                            
+                            
+                            for k in 2..myHash["min_x_array"].length - 1
+                                
+                                box_gr = inner_line_box_group.entities.add_group()
+                                cpoint_box_gr = box_gr.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                                box_gr.material = "box_mat"
+                                
+                                
+                                my_parameters = {}
+                                my_parameters["box_gr"] = box_gr
+                                my_parameters["min_x"] = myHash["min_x_array"][k].to_f * 1000
+                                my_parameters["min_y"] = myHash["min_y_array"][k].to_f * 1000
+                                my_parameters["max_x"] = myHash["max_x_array"][k].to_f * 1000
+                                my_parameters["max_y"] = myHash["max_y_array"][k].to_f * 1000
+                                my_parameters["height"] = myHash["height_array"][k].to_f * 1000
+                                my_parameters["z_start"] = current_z
+                                if speed_it_up == 0
+                                    self.add_a_box(my_parameters)
+                                end
+                                if speed_it_up == 1
+                                    self.add_a_box_lite(my_parameters)
+                                    box_gr.material = "box_mat_lite"
+                                end
+                                if speed_it_up == 2
+                                    #self.add_a_box_very_lite(my_parameters)
+                                    #box_gr.material = "box_mat_lite"
+                                end
+                                
+                                begin
+                                    cpoint_box_gr.erase!
+                                rescue
+                                    my_err = 1
+                                end
+                                
+                                b_cases_drawn = b_cases_drawn + 1
+                                if b_cases_drawn >= b_max_inner_count
+                                    break
+                                end
+                            end
+                            current_z = current_z + my_parameters["height"]
+                        end
+                    end
+                    begin
+                        cpoint_ilb3.erase!
+                    rescue
+                        my_err = 1
+                    end
+                    
+                    
+                end
+                
+                
+                transformation = Geom::Transformation.new( Geom::Vector3d.new(my_pos_x.mm,my_pos_Y.mm,0))
+                main_group.transform! transformation
+                
+                
+                
+                
+                begin
+                    constrPt.erase!
+                rescue
+                    my_err = 1
+                end
+                begin
+                    cpoint_bb.erase!
+                rescue
+                    my_err = 1
+                end
+                begin
+                    cpoint_ilb.erase!
+                rescue
+                    my_err = 1
+                end
+                
+                my_pos_x = my_pos_x + my_pos_x_step #+ (myHash["max_x_array"].max * 1000)
+                in_row_counter = in_row_counter + 1
+                
+                if multiple?(in_row_counter, my_pos_x_i_gap_after)
+                    
+                    begin
+                        constrPt_gr1.erase!
+                    rescue
+                        my_err = 1
+                    end
+                    my_pos_x = my_pos_x + my_pos_x_step #+ (myHash["max_x_array"].max * 1000)
+                    gr1 = entities.add_group()
+                    constrPt_gr1 = gr1.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+                end
+                
+                if max_ever_x < my_pos_x
+                    max_ever_x = my_pos_x
+                end
+                
+                local_max_y = (myHash["max_y_array"].max * 1000)
+                if my_pos_Y_max_in_row < local_max_y
+                    my_pos_Y_max_in_row = local_max_y
+                end
+                
+                
+                    
+                
+                if in_row_counter == max_per_row
+                    in_row_counter = 0
+                    my_pos_Y = my_pos_Y - my_pos_y_step #- my_pos_Y_max_in_row
+                    my_pos_Y_max_in_row = 0
+                    my_pos_x = 0
+                    
+                    in_column_counter = in_column_counter + 1
+                    
+                    if multiple?(in_column_counter, my_pos_y_i_gap_after)
+                        my_pos_Y = my_pos_Y - my_pos_y_step
+                    end
+                    
+                end
+                
+                begin
+                    constrPt_gr1.erase!
+                rescue
+                    my_err = 1
+                end
+            end
+}
+
+
+my_pos_Y = my_pos_Y - my_pos_y_step
+
+if my_pos_Y == 0
+    my_pos_Y = my_pos_x_step * (-1)
+end
+
+for i in 0..all_group_array.length-1
+
+    transformation = Geom::Transformation.new( Geom::Vector3d.new(my_pos_x_step.mm,((-1 * my_pos_Y)).mm,0))
+    all_group_array[i].transform! transformation
+end
+
+
+
+begin
+    constrPt_gr1.erase!
+rescue
+    my_err = 1
+end
+
+
+baseplate_gr = entities.add_group()
+baseplate_gr_constrPt = baseplate_gr.entities.add_cpoint(Geom::Point3d.new(0,0,0))
+my_parameters = {}
+my_parameters["box_gr"] = baseplate_gr
+my_parameters["min_x"] = my_pos_x_step/2
+my_parameters["min_y"] = my_pos_y_step/2
+my_parameters["max_x"] = max_ever_x + my_pos_x_step
+my_parameters["max_y"] = (-1 * my_pos_Y) + my_pos_y_step
+my_parameters["height"] = 0
+
+self.add_bottom_face(my_parameters)
+
+baseplate_gr.material = "baseplate_grey"
+
+begin
+    baseplate_gr_constrPt.erase!
+rescue
+    my_err = 1
+end
+
+model.commit_operation#ImportConveyorCSV
+UI.messagebox('Done!')
